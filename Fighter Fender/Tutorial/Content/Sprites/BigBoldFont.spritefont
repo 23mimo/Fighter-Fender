@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics">
+  <Asset Type="Graphics:FontDescription">
+    <FontName>Minecraft</FontName> <!-- Changed to your desired font -->
+    <Size>48</Size> <!-- Make this larger than your normal font -->
+    <Spacing>2</Spacing>
+    <Style>Bold</Style>
+    <CharacterRegions>
+      <CharacterRegion>
+        <Start> </Start>
+        <End>~</End>
+      </CharacterRegion>
+    </CharacterRegions>
+  </Asset>
+</XnaContent>
