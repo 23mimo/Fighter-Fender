@@ -14,7 +14,9 @@ namespace Tutorial
         private Rectangle playBoxRect;
         private Rectangle difficultyBoxRect;
         private Rectangle[] difficultyButtons = new Rectangle[3];
-        private Rectangle leaderboardBoxRect; // Add this field
+        private Rectangle leaderboardBoxRect;
+        private Rectangle rightButtonRect; // Add this field for the right button
+        public bool WardrobeRequested { get; private set; } = false; // Add this property
 
         public enum MenuScreen
         {
@@ -144,13 +146,30 @@ namespace Tutorial
                 Color.White
             );
 
+            // --- Draw right-side rectangular button ---
+            int rightButtonWidth = 120;
+            int rightButtonHeight = 60;
+            int rightButtonX = windowWidth - rightButtonWidth - 40; // 40px margin from right edge
+            int rightButtonY = (windowHeight - rightButtonHeight) / 2;
+            rightButtonRect = new Rectangle(rightButtonX, rightButtonY, rightButtonWidth, rightButtonHeight);
+            spriteBatch.Draw(whitePixel, rightButtonRect, new Color(40, 40, 40, 220));
+            // Draw button text centered
+            string rightButtonText = "Wardrobe";
+            Vector2 rightTextSize = _font.MeasureString(rightButtonText);
+            Vector2 rightTextPos = new Vector2(
+                rightButtonX + (rightButtonWidth - rightTextSize.X) / 2,
+                rightButtonY + (rightButtonHeight - rightTextSize.Y) / 2
+            );
+            spriteBatch.DrawString(_font, rightButtonText, rightTextPos, Color.White);
+
             // --- Draw containers ---
             for (int i = 0; i < 3; i++)
             {
                 int x = (windowWidth - containerWidth) / 2;
                 int y = startY + i * (containerHeight + containerSpacing);
                 Rectangle boxRect = new Rectangle(x, y, containerWidth, containerHeight);
-                spriteBatch.Draw(whitePixel, boxRect, new Color(32, 32, 32, 220));
+                // Use wardrobe box color for all clickable boxes
+                spriteBatch.Draw(whitePixel, boxRect, new Color(40, 40, 40, 220));
 
                 if (i == 0)
                 {
@@ -276,6 +295,25 @@ namespace Tutorial
                 }
             }
             return -1;
+        }
+
+        // Remove IsLeftButtonClicked and add IsRightButtonClicked
+        public bool IsRightButtonClicked(MouseState mouseState, MouseState prevMouseState)
+        {
+            if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+            {
+                if (rightButtonRect.Contains(mouseState.Position))
+                {
+                    WardrobeRequested = true;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void ResetWardrobeRequest()
+        {
+            WardrobeRequested = false;
         }
 
         // Helper to draw a line with a 1x1 pixel texture

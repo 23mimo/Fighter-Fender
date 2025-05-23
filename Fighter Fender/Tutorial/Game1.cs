@@ -85,7 +85,8 @@ namespace Tutorial
             Main,
             Difficulty,
             NameEntry,
-            Leaderboard // Add leaderboard screen
+            Leaderboard,
+            Wardrobe // Add wardrobe screen
         }
         private MenuScreen currentMenuScreen = MenuScreen.Main;
         private int selectedDifficulty = -1;
@@ -169,10 +170,28 @@ namespace Tutorial
             bulletTexture = Content.Load<Texture2D>("Sprites/bullet");
             
             // Load coin animation frames
-            // var coinFrames = Animation.LoadFrames(Content, "Sprites/coins/frame", 7);
-            // coinAnimation = new Animation(coinFrames, 0.2f);
-            // coinTexture = coinFrames.Count > 0 ? coinFrames[0] : null; // For hitbox size and spawn logic
-            coinTexture = Content.Load<Texture2D>("Sprites/coin");
+            var coinFrames = new List<Texture2D>();
+            for (int i = 0; i < 7; i++)
+            {
+                string path = $"Sprites/coins/frame_{i}";
+                try
+                {
+                    coinFrames.Add(Content.Load<Texture2D>(path));
+                }
+                catch
+                {
+                    // If frame not found, skip
+                }
+            }
+            if (coinFrames.Count > 0)
+            {
+                coinAnimation = new Animation(coinFrames, 0.2f);
+                coinTexture = coinFrames[0]; // For hitbox size and spawn logic
+            }
+            else
+            {
+                coinTexture = Content.Load<Texture2D>("Sprites/coin");
+            }
 
             asteroidTexture = Content.Load<Texture2D>("Sprites/asteroid");
             powerupDoublePointsTexture = Content.Load<Texture2D>("Sprites/doubleup");
@@ -252,6 +271,11 @@ namespace Tutorial
                     {
                         currentMenuScreen = MenuScreen.Leaderboard;
                     }
+                    // Use right button for wardrobe/skins
+                    else if (menus.IsRightButtonClicked(mouseState, prevMouseState))
+                    {
+                        currentMenuScreen = MenuScreen.Wardrobe;
+                    }
                 }
                 else if (currentMenuScreen == MenuScreen.Difficulty)
                 {
@@ -324,6 +348,16 @@ namespace Tutorial
                         }
                     }
                     prevMouseState = ms;
+                    return;
+                }
+                else if (currentMenuScreen == MenuScreen.Wardrobe)
+                {
+                    // Return to main menu on ESC
+                    if (k.IsKeyDown(Keys.Escape))
+                    {
+                        currentMenuScreen = MenuScreen.Main;
+                    }
+                    prevMouseState = Mouse.GetState();
                     return;
                 }
                 prevMouseState = mouseState;
@@ -830,6 +864,21 @@ namespace Tutorial
                             leaderboardBackBox.Y + (leaderboardBackBox.Height - arrowSize.Y) / 2
                         ),
                         Color.White);
+
+                    spriteBatch.End();
+                    return;
+                }
+                else if (currentMenuScreen == MenuScreen.Wardrobe)
+                {
+                    // Draw wardrobe/skins screen placeholder
+                    spriteBatch.GraphicsDevice.Clear(Color.Black);
+                    string title = "Skins";
+                    Vector2 titleSize = font.MeasureString(title);
+                    spriteBatch.DrawString(font, title, new Vector2((Window.ClientBounds.Width - titleSize.X) / 2, 60), Color.Yellow);
+
+                    string hint = "Press ESC to return";
+                    Vector2 hintSize = font.MeasureString(hint);
+                    spriteBatch.DrawString(font, hint, new Vector2((Window.ClientBounds.Width - hintSize.X) / 2, 120), Color.Gray);
 
                     spriteBatch.End();
                     return;

@@ -173,3 +173,4 @@ C:\Users\mikaa\Downloads\Fighter Fender\Fighter Fender\Tutorial\bin\Debug\net6.0
 C:\Users\mikaa\Downloads\Fighter Fender\Fighter Fender\Tutorial\bin\Debug\net6.0\Content\Sprites\coins\frame4.xnb
 C:\Users\mikaa\Downloads\Fighter Fender\Fighter Fender\Tutorial\bin\Debug\net6.0\Content\Sprites\coins\frame5.xnb
 C:\Users\mikaa\Downloads\Fighter Fender\Fighter Fender\Tutorial\bin\Debug\net6.0\Content\Sprites\coins\frame6.xnb
+C:\Users\mikaa\Downloads\Fighter Fender\Fighter Fender\Tutorial\bin\Debug\net6.0\Content\Sprites\clothes-hanger.xnb

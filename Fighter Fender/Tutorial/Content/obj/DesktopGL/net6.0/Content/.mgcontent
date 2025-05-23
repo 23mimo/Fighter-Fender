@@ -43,6 +43,7 @@
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/BigFont.spritefont</File>
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/BoldFont.spritefont</File>
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/bullet.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/clothes-hanger.png</File>
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/coin.png</File>
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/coins/frame0.png</File>
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/coins/frame1.png</File>
@@ -68,6 +69,7 @@
     <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/tripod.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
