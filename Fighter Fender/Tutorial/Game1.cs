@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq; // Add this using directive for LINQ methods
 
 namespace Tutorial
 {
@@ -58,6 +59,8 @@ namespace Tutorial
         // Add constants for ship size
         private const int ShipWidth = 64;
         private const int ShipHeight = 64;
+        private const int EnemyWidth = 60;   // Add this
+        private const int EnemyHeight = 60;  // Add this
 
         private Menus menus; // Add this field
 
@@ -72,7 +75,8 @@ namespace Tutorial
         {
             Main,
             Difficulty,
-            NameEntry
+            NameEntry,
+            Leaderboard // Add leaderboard screen
         }
         private MenuScreen currentMenuScreen = MenuScreen.Main;
         private int selectedDifficulty = -1;
@@ -91,6 +95,9 @@ namespace Tutorial
 
         private bool lostScreen = false;
         private double lostScreenTimer = 0; // Add a timer for the lost screen
+
+        // Add for leaderboard back button
+        private Rectangle leaderboardBackBox = new Rectangle(20, 20, 48, 48);
 
         public Game1()
         {
@@ -128,7 +135,7 @@ namespace Tutorial
             font = Content.Load<SpriteFont>("Sprites/BoldFont");
 
             // Load logo texture from Sprites folder
-            logoTexture = Content.Load<Texture2D>("Sprites/logo");
+            logoTexture = Content.Load<Texture2D>("Sprites/fighter fender");
 
             // Create a 1x1 white pixel texture for drawing rectangles
             whitePixel = new Texture2D(GraphicsDevice, 1, 1);
@@ -148,7 +155,8 @@ namespace Tutorial
             // Gum.Update(gameTime);
 
             KeyboardState k = Keyboard.GetState();
-            if (k.IsKeyDown(Keys.Escape)) Exit();
+            // Remove this line so ESC does not exit the game:
+            // if (k.IsKeyDown(Keys.Escape)) Exit();
 
             MouseState mouseState = Mouse.GetState();
 
@@ -160,8 +168,9 @@ namespace Tutorial
                 if (lostScreenTimer <= 0)
                 {
                     lostScreen = false;
-                    currentMenuScreen = MenuScreen.Main;
-                    gameStarted = false;
+                    // Reset all gameplay objects and player position
+                    ResetGame();
+                    // Do NOT set currentMenuScreen or gameStarted here, let the menu logic handle it
                 }
                 prevMouseState = Mouse.GetState();
                 return;
@@ -169,6 +178,11 @@ namespace Tutorial
 
             if (!gameStarted)
             {
+                // Ensure gameplay objects are always reset when entering menu or name entry after lostScreen
+                if (enemies.Count > 0 || bullets.Count > 0 || coins.Count > 0 || asteroids.Count > 0 || powerups.Count > 0 || health != 3 || score != 0)
+                {
+                    ResetGame();
+                }
                 if (currentMenuScreen == MenuScreen.Main)
                 {
                     if (menus.IsPlayBoxClicked(mouseState, prevMouseState))
@@ -180,6 +194,11 @@ namespace Tutorial
                     else if (menus.IsDifficultyBoxClicked(mouseState, prevMouseState))
                     {
                         currentMenuScreen = MenuScreen.Difficulty;
+                    }
+                    // Add: Leaderboard button click
+                    else if (menus.IsLeaderboardBoxClicked != null && menus.IsLeaderboardBoxClicked(mouseState, prevMouseState))
+                    {
+                        currentMenuScreen = MenuScreen.Leaderboard;
                     }
                 }
                 else if (currentMenuScreen == MenuScreen.Difficulty)
@@ -212,6 +231,8 @@ namespace Tutorial
                             SetDifficultyEnemySpeed();
                             gameStarted = true;
                             currentMenuScreen = MenuScreen.Main;
+                            // Start the game immediately after submitting the name
+                            // (already handled by setting gameStarted = true and currentMenuScreen = MenuScreen.Main)
                         }
                         else if (key == Keys.Back && playerName.Length > 0)
                         {
@@ -232,6 +253,25 @@ namespace Tutorial
                     }
                     lastNameEntryKey = key;
                     prevMouseState = Mouse.GetState();
+                    return;
+                }
+                else if (currentMenuScreen == MenuScreen.Leaderboard)
+                {
+                    // Return to main menu on ESC (do NOT exit the game)
+                    if (k.IsKeyDown(Keys.Escape))
+                    {
+                        currentMenuScreen = MenuScreen.Main;
+                    }
+                    // Handle mouse click on back box
+                    MouseState ms = Mouse.GetState();
+                    if (ms.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+                    {
+                        if (leaderboardBackBox.Contains(ms.Position))
+                        {
+                            currentMenuScreen = MenuScreen.Main;
+                        }
+                    }
+                    prevMouseState = ms;
                     return;
                 }
                 prevMouseState = mouseState;
@@ -329,7 +369,9 @@ namespace Tutorial
             if (enemySpawnTimer >= 1f)
             {
                 enemySpawnTimer = 0;
-                enemies.Add(new Vector2(random.Next(0, Window.ClientBounds.Width - enemyTexture.Width), -enemyTexture.Height));
+                int maxX = Window.ClientBounds.Width - EnemyWidth; // Use EnemyWidth
+                int enemyX = maxX > 0 ? random.Next(0, maxX) : 0;
+                enemies.Add(new Vector2(enemyX, -EnemyHeight)); // Use EnemyHeight
             }
 
             // Update enemies
@@ -343,7 +385,7 @@ namespace Tutorial
                     continue;
                 }
 
-                Rectangle enemyRect = new Rectangle((int)enemies[i].X, (int)enemies[i].Y, enemyTexture.Width, enemyTexture.Height);
+                Rectangle enemyRect = new Rectangle((int)enemies[i].X, (int)enemies[i].Y, EnemyWidth, EnemyHeight); // Use EnemyWidth/Height
                 Rectangle playerRect = new Rectangle((int)shipPosition.X, (int)shipPosition.Y, ShipWidth, ShipHeight);
 
                 if (!immortal && enemyRect.Intersects(playerRect))
@@ -353,8 +395,10 @@ namespace Tutorial
                     if (health <= 0)
                     {
                         lostScreen = true;
-                        lostScreenTimer = 1.5;
+                        lostScreenTimer = 3.0; // Increased from 1.5 to 3.0 seconds
                         gameStarted = false;
+                        leaderboard.AddScoreWithName(score, playerName); // Save score and name immediately
+                        leaderboard.Load(); // <-- Reload leaderboard to reflect new score
                     }
                 }
 
@@ -376,7 +420,9 @@ namespace Tutorial
             if (coinSpawnTimer >= 3f)
             {
                 coinSpawnTimer = 0;
-                coins.Add(new Vector2(random.Next(0, Window.ClientBounds.Width - coinTexture.Width), -coinTexture.Height));
+                int maxX = Window.ClientBounds.Width - coinTexture.Width;
+                int coinX = maxX > 0 ? random.Next(0, maxX) : 0;
+                coins.Add(new Vector2(coinX, -coinTexture.Height));
             }
 
             // Coin collection
@@ -397,14 +443,20 @@ namespace Tutorial
             if (asteroidSpawnTimer >= 12f)
             {
                 asteroidSpawnTimer = 0;
-                asteroids.Add(new Vector2(random.Next(0, Window.ClientBounds.Width - asteroidTexture.Width), -asteroidTexture.Height));
+                int maxX = Window.ClientBounds.Width - asteroidTexture.Width;
+                int asteroidX = maxX > 0 ? random.Next(0, maxX) : 0;
+                asteroids.Add(new Vector2(asteroidX, -asteroidTexture.Height));
             }
 
             // Update asteroids
             for (int i = asteroids.Count - 1; i >= 0; i--)
             {
                 asteroids[i] += new Vector2(0, 2f);
-                if (asteroids[i].Y > Window.ClientBounds.Height) asteroids.RemoveAt(i);
+                if (asteroids[i].Y > Window.ClientBounds.Height) 
+                {
+                    asteroids.RemoveAt(i);
+                    continue;
+                }
                 else
                 {
                     Rectangle a = new Rectangle((int)asteroids[i].X, (int)asteroids[i].Y, asteroidTexture.Width, asteroidTexture.Height);
@@ -416,9 +468,12 @@ namespace Tutorial
                         if (health <= 0)
                         {
                             lostScreen = true;
-                            lostScreenTimer = 1.5;
+                            lostScreenTimer = 3.0; // Increased from 1.5 to 3.0 seconds
                             gameStarted = false;
+                            leaderboard.AddScoreWithName(score, playerName); // Save score and name immediately
+                            leaderboard.Load(); // <-- Reload leaderboard to reflect new score
                         }
+                        continue; // Prevent out-of-range access after removal
                     }
                 }
             }
@@ -434,7 +489,9 @@ namespace Tutorial
                 else if (rand == 1) type = "immortal";
                 else type = "heart";
 
-                powerups.Add(new Tuple<Vector2, string>(new Vector2(random.Next(0, Window.ClientBounds.Width - coinTexture.Width), -coinTexture.Height), type));
+                int maxX = Window.ClientBounds.Width - coinTexture.Width;
+                int powerupX = maxX > 0 ? random.Next(0, maxX) : 0;
+                powerups.Add(new Tuple<Vector2, string>(new Vector2(powerupX, -coinTexture.Height), type));
             }
 
             // Update powerups
@@ -493,13 +550,6 @@ namespace Tutorial
                 {
                     immortal = false;
                 }
-            }
-
-            // Win condition
-            if (score >= 5000)
-            {
-                gameWin = true;
-                gameStarted = false;
             }
 
             prevMouseState = mouseState;
@@ -596,6 +646,22 @@ namespace Tutorial
                     0f
                 );
 
+                int y = (int)((Window.ClientBounds.Height + 40) / 2) + 20;
+
+                // Show top 3 scores (not last 3)
+                spriteBatch.DrawString(font, "Leaderboard:", new Vector2(10, y), Color.Yellow);
+                int rank = 1;
+                var topScores = leaderboard.HighScoresWithNames
+                    .OrderByDescending(e => e.Score)
+                    .Take(3)
+                    .ToList();
+                foreach (var entry in topScores)
+                {
+                    y += 24;
+                    spriteBatch.DrawString(font, $"{rank}. {entry.Name} - {entry.Score}", new Vector2(10, y), Color.White);
+                    rank++;
+                }
+
                 spriteBatch.End();
                 return;
             }
@@ -628,8 +694,43 @@ namespace Tutorial
                     Vector2 textSize = font.MeasureString(prompt);
                     spriteBatch.DrawString(font, prompt, new Vector2((Window.ClientBounds.Width - textSize.X) / 2, Window.ClientBounds.Height / 2), Color.Yellow);
                 }
-                spriteBatch.End();
-                return;
+                else if (currentMenuScreen == MenuScreen.Leaderboard)
+                {
+                    // Draw leaderboard screen
+                    spriteBatch.GraphicsDevice.Clear(Color.Black);
+                    string title = "Leaderboard";
+                    Vector2 titleSize = font.MeasureString(title);
+                    spriteBatch.DrawString(font, title, new Vector2((Window.ClientBounds.Width - titleSize.X) / 2, 60), Color.Yellow);
+
+                    int y = 120;
+                    int rank = 1;
+                    foreach (var entry in leaderboard.HighScoresWithNames)
+                    {
+                        string line = $"{rank}. {entry.Name} - {entry.Score}"; // Show both name and score
+                        Vector2 lineSize = font.MeasureString(line);
+                        spriteBatch.DrawString(font, line, new Vector2((Window.ClientBounds.Width - lineSize.X) / 2, y), Color.White);
+                        y += 32;
+                        rank++;
+                    }
+
+                    string hint = "Press ESC to return";
+                    Vector2 hintSize = font.MeasureString(hint);
+                    spriteBatch.DrawString(font, hint, new Vector2((Window.ClientBounds.Width - hintSize.X) / 2, y + 32), Color.Gray);
+
+                    // Draw the back button (square)
+                    spriteBatch.Draw(whitePixel, leaderboardBackBox, Color.Gray * 0.7f);
+                    string backArrow = "<";
+                    Vector2 arrowSize = font.MeasureString(backArrow);
+                    spriteBatch.DrawString(font, backArrow,
+                        new Vector2(
+                            leaderboardBackBox.X + (leaderboardBackBox.Width - arrowSize.X) / 2,
+                            leaderboardBackBox.Y + (leaderboardBackBox.Height - arrowSize.Y) / 2
+                        ),
+                        Color.White);
+
+                    spriteBatch.End();
+                    return;
+                }
             }
             if (gameOver)
             {
@@ -668,75 +769,84 @@ namespace Tutorial
                 return;
             }
 
-            // Draw the ship at 64x64 pixels
-            spriteBatch.Draw(
-                ship,
-                new Rectangle((int)shipPosition.X, (int)shipPosition.Y, ShipWidth, ShipHeight),
-                Color.White
-            );
-
-            foreach (var enemy in enemies)
-                spriteBatch.Draw(enemyTexture, enemy, Color.White);
-
-            foreach (var bullet in bullets)
-                spriteBatch.Draw(bulletTexture, bullet, Color.White);
-
-            foreach (var coin in coins)
-                spriteBatch.Draw(coinTexture, coin, Color.White);
-
-            // Draw asteroids scaled to match their hitbox
-            foreach (var asteroid in asteroids)
+            // Only draw gameplay objects when game is running
+            if (gameStarted && !lostScreen && !gameOver && !gameWin)
+            {
+                // Draw the ship at 64x64 pixels
                 spriteBatch.Draw(
-                    asteroidTexture,
-                    new Rectangle((int)asteroid.X, (int)asteroid.Y, asteroidDrawSize, asteroidDrawSize),
-                    null,
-                    Color.White,
-                    0f,
-                    Vector2.Zero,
-                    SpriteEffects.None,
-                    0f
+                    ship,
+                    new Rectangle((int)shipPosition.X, (int)shipPosition.Y, ShipWidth, ShipHeight),
+                    Color.White
                 );
 
-            // Draw powerups
-            foreach (var pu in powerups)
-            {
-                Texture2D tex = null;
-                if (pu.Item2 == "doubleup") tex = powerupDoublePointsTexture;
-                else if (pu.Item2 == "immortal") tex = powerupImmortalTexture;
-                else if (pu.Item2 == "heart") tex = powerupHeartTexture;
+                // Draw each enemy at 60x60 pixels
+                foreach (var enemy in enemies)
+                    spriteBatch.Draw(
+                        enemyTexture,
+                        new Rectangle((int)enemy.X, (int)enemy.Y, EnemyWidth, EnemyHeight),
+                        Color.White
+                    );
 
-                if (tex != null)
+                foreach (var bullet in bullets)
+                    spriteBatch.Draw(bulletTexture, bullet, Color.White);
+
+                foreach (var coin in coins)
+                    spriteBatch.Draw(coinTexture, coin, Color.White);
+
+                // Draw asteroids scaled to match their hitbox
+                foreach (var asteroid in asteroids)
+                    spriteBatch.Draw(
+                        asteroidTexture,
+                        new Rectangle((int)asteroid.X, (int)asteroid.Y, asteroidDrawSize, asteroidDrawSize),
+                        null,
+                        Color.White,
+                        0f,
+                        Vector2.Zero,
+                        SpriteEffects.None,
+                        0f
+                    );
+
+                // Draw powerups
+                foreach (var pu in powerups)
                 {
-                    if (pu.Item2 != "heart")
+                    Texture2D tex = null;
+                    if (pu.Item2 == "doubleup") tex = powerupDoublePointsTexture;
+                    else if (pu.Item2 == "immortal") tex = powerupImmortalTexture;
+                    else if (pu.Item2 == "heart") tex = powerupHeartTexture;
+
+                    if (tex != null)
                     {
-                        Rectangle destRect = new Rectangle((int)pu.Item1.X, (int)pu.Item1.Y, coinTexture.Width, coinTexture.Height);
-                        spriteBatch.Draw(tex, destRect, Color.White);
-                    }
-                    else
-                    {
-                        Vector2 position = pu.Item1;
-                        int maxWidth = coinTexture.Width;
-                        int maxHeight = coinTexture.Height;
+                        if (pu.Item2 != "heart")
+                        {
+                            Rectangle destRect = new Rectangle((int)pu.Item1.X, (int)pu.Item1.Y, coinTexture.Width, coinTexture.Height);
+                            spriteBatch.Draw(tex, destRect, Color.White);
+                        }
+                        else
+                        {
+                            Vector2 position = pu.Item1;
+                            int maxWidth = coinTexture.Width;
+                            int maxHeight = coinTexture.Height;
 
-                        float scaleX = (float)maxWidth / tex.Width;
-                        float scaleY = (float)maxHeight / tex.Height;
-                        float scale = Math.Min(scaleX, scaleY);
+                            float scaleX = (float)maxWidth / tex.Width;
+                            float scaleY = (float)maxHeight / tex.Height;
+                            float scale = Math.Min(scaleX, scaleY);
 
-                        Vector2 size = new Vector2(tex.Width * scale, tex.Height * scale);
-                        Vector2 drawPos = new Vector2(position.X + (maxWidth - size.X) / 2, position.Y + (maxHeight - size.Y) / 2);
+                            Vector2 size = new Vector2(tex.Width * scale, tex.Height * scale);
+                            Vector2 drawPos = new Vector2(position.X + (maxWidth - size.X) / 2, position.Y + (maxHeight - size.Y) / 2);
 
-                        spriteBatch.Draw(tex, drawPos, null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                            spriteBatch.Draw(tex, drawPos, null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                        }
                     }
                 }
-            }
 
-            // Use BoldFont (small font) for score and health
-            spriteBatch.DrawString(BoldFont, $"Score: {score}", new Vector2(10, 10), Color.White);
-            spriteBatch.DrawString(BoldFont, $"Health: {health}", new Vector2(10, 40), Color.White);
-            if (doublePoints)
-                spriteBatch.DrawString(BoldFont, $"Double Points Active!", new Vector2(10, 70), Color.Yellow);
-            if (immortal)
-                spriteBatch.DrawString(BoldFont, $"Immortal Active!", new Vector2(10, 100), Color.LightBlue);
+                // Use BoldFont (small font) for score and health
+                spriteBatch.DrawString(BoldFont, $"Score: {score}", new Vector2(10, 10), Color.White);
+                spriteBatch.DrawString(BoldFont, $"Health: {health}", new Vector2(10, 40), Color.White);
+                if (doublePoints)
+                    spriteBatch.DrawString(BoldFont, $"Double Points Active!", new Vector2(10, 70), Color.Yellow);
+                if (immortal)
+                    spriteBatch.DrawString(BoldFont, $"Immortal Active!", new Vector2(10, 100), Color.LightBlue);
+            }
 
             spriteBatch.End();
 

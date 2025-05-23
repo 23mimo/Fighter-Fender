@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mikaa\\Downloads\\RnpVpvn - Copy\\Tutorial\\Tutorial.csproj": {}
+    "C:\\Users\\mikaa\\Downloads\\Fighter Fender\\Fighter Fender\\Tutorial\\Tutorial.csproj": {}
   },
   "projects": {
-    "C:\\Users\\mikaa\\Downloads\\RnpVpvn - Copy\\Tutorial\\Tutorial.csproj": {
+    "C:\\Users\\mikaa\\Downloads\\Fighter Fender\\Fighter Fender\\Tutorial\\Tutorial.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mikaa\\Downloads\\RnpVpvn - Copy\\Tutorial\\Tutorial.csproj",
+        "projectUniqueName": "C:\\Users\\mikaa\\Downloads\\Fighter Fender\\Fighter Fender\\Tutorial\\Tutorial.csproj",
         "projectName": "Tutorial",
-        "projectPath": "C:\\Users\\mikaa\\Downloads\\RnpVpvn - Copy\\Tutorial\\Tutorial.csproj",
+        "projectPath": "C:\\Users\\mikaa\\Downloads\\Fighter Fender\\Fighter Fender\\Tutorial\\Tutorial.csproj",
         "packagesPath": "C:\\Users\\mikaa\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mikaa\\Downloads\\RnpVpvn - Copy\\Tutorial\\obj\\",
+        "outputPath": "C:\\Users\\mikaa\\Downloads\\Fighter Fender\\Fighter Fender\\Tutorial\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -14,6 +14,7 @@ namespace Tutorial
         private Rectangle playBoxRect;
         private Rectangle difficultyBoxRect;
         private Rectangle[] difficultyButtons = new Rectangle[3];
+        private Rectangle leaderboardBoxRect; // Add this field
 
         public enum MenuScreen
         {
@@ -115,26 +116,35 @@ namespace Tutorial
             spriteBatch.GraphicsDevice.Clear(new Color(16, 16, 16));
 
             // --- Draw logo ---
-            int logoSize = 128; // or any square size you want
-            // Use the smaller of the texture's width/height to keep it square
-            int logoDrawSize = Math.Min(logoTexture.Width, logoTexture.Height);
-            float scale = logoSize / (float)logoDrawSize;
-            int logoX = (windowWidth - logoSize) / 2;
-            int logoY = windowHeight / 2 - 200;
-            spriteBatch.Draw(
-                logoTexture,
-                new Rectangle(logoX, logoY, logoSize, logoSize),
-                new Rectangle(0, 0, logoDrawSize, logoDrawSize),
-                Color.White
-            );
-
-            // --- Draw containers ---
+            // Calculate available area above the containers
             int containerWidth = 320;
             int containerHeight = 60;
             int containerSpacing = 20;
             int totalHeight = containerHeight * 3 + containerSpacing * 2;
             int startY = (windowHeight - totalHeight) / 2 + 40;
 
+            // Set max logo size
+            int maxLogoWidth = 800;
+            int maxLogoHeight = 200;
+
+            // Scale logo to fit within maxLogoWidth x maxLogoHeight, preserving aspect ratio
+            float scaleX = (float)maxLogoWidth / logoTexture.Width;
+            float scaleY = (float)maxLogoHeight / logoTexture.Height;
+            float scale = Math.Min(scaleX, scaleY);
+
+            int drawWidth = (int)(logoTexture.Width * scale);
+            int drawHeight = (int)(logoTexture.Height * scale);
+            int drawX = (windowWidth - drawWidth) / 2;
+            int drawY = Math.Max((startY - drawHeight) / 2, 32) - 30; // Move logo up by ~30px
+
+            spriteBatch.Draw(
+                logoTexture,
+                new Rectangle(drawX, drawY, drawWidth, drawHeight),
+                null,
+                Color.White
+            );
+
+            // --- Draw containers ---
             for (int i = 0; i < 3; i++)
             {
                 int x = (windowWidth - containerWidth) / 2;
@@ -166,7 +176,18 @@ namespace Tutorial
                     );
                     spriteBatch.DrawString(_font, diffText, textPos, Color.White);
                 }
-                // Optionally, draw text for other boxes here
+                else if (i == 2)
+                {
+                    leaderboardBoxRect = boxRect; // Store for click detection
+                    // Draw "Leaderboard" centered in the third box
+                    string leaderboardText = "Leaderboard";
+                    Vector2 textSize = _font.MeasureString(leaderboardText);
+                    Vector2 textPos = new Vector2(
+                        x + (containerWidth - textSize.X) / 2,
+                        y + (containerHeight - textSize.Y) / 2
+                    );
+                    spriteBatch.DrawString(_font, leaderboardText, textPos, Color.White);
+                }
             }
         }
 
@@ -233,6 +254,16 @@ namespace Tutorial
             }
             return false;
         }
+
+        public Func<MouseState, MouseState, bool> IsLeaderboardBoxClicked => (mouseState, prevMouseState) =>
+        {
+            if (mouseState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released)
+            {
+                if (leaderboardBoxRect.Contains(mouseState.Position))
+                    return true;
+            }
+            return false;
+        };
 
         public int GetDifficultyButtonClicked(MouseState mouseState, MouseState prevMouseState)
         {

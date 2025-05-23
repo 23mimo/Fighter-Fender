@@ -4,20 +4,20 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/BigFont.spritefont</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/asteroid.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/background.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/BigFont.spritefont</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/BoldFont.spritefont</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/bullet.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/coin.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/doubleup.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/File.spritefont</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/heart.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/immortal.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/logo.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/ship.png</File>
-    <File>C:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/tripod.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/asteroid.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/background.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/BigFont.spritefont</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/BoldFont.spritefont</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/bullet.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/coin.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/doubleup.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/fighter fender.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/File.spritefont</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/heart.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/immortal.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/logo.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/ship.png</File>
+    <File>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/tripod.png</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />
