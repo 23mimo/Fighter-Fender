@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SourceFile>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/tripod.png</SourceFile>
-  <SourceTime>2025-05-23T16:07:44.6299558+02:00</SourceTime>
+  <SourceTime>2025-05-23T18:37:56.5604618+02:00</SourceTime>
   <DestFile>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/bin/DesktopGL/Content/Sprites/tripod.xnb</DestFile>
-  <DestTime>2025-05-23T16:07:55.7013304+02:00</DestTime>
+  <DestTime>2025-05-23T18:38:05.9358935+02:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T13:44:56+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

@@ -277,6 +277,15 @@ namespace Tutorial
             }
             return -1;
         }
+
+        // Helper to draw a line with a 1x1 pixel texture
+        private void DrawLine(SpriteBatch spriteBatch, Texture2D texture, Vector2 start, Vector2 end, Color color, float thickness)
+        {
+            Vector2 edge = end - start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+            float length = edge.Length();
+            spriteBatch.Draw(texture, start, null, color, angle, Vector2.Zero, new Vector2(length, thickness), SpriteEffects.None, 0);
+        }
     }
     
     public enum MenuAction

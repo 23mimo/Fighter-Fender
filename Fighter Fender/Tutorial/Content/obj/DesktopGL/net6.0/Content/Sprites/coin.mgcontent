@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SourceFile>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/coin.png</SourceFile>
-  <SourceTime>2025-04-10T11:03:34+02:00</SourceTime>
+  <SourceTime>2025-05-23T19:22:05.6680784+02:00</SourceTime>
   <DestFile>C:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/bin/DesktopGL/Content/Sprites/coin.xnb</DestFile>
-  <DestTime>2025-05-23T15:38:34.2622776+02:00</DestTime>
+  <DestTime>2025-05-23T19:23:07.2576972+02:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T13:44:56+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

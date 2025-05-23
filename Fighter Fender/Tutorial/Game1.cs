@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq; // Add this using directive for LINQ methods
+using System.IO; // Add this at the top if not present
 
 namespace Tutorial
 {
@@ -12,7 +13,12 @@ namespace Tutorial
         private GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
 
-        private Texture2D background;
+        private Animation backgroundAnimation;
+
+        private List<Texture2D> backgroundFrames = new List<Texture2D>();
+        private const float BackgroundFrameDelay = 0.09f;
+        // Removed unused field: private float backgroundFrameTimer;
+
         private Texture2D ship;
         private Vector2 shipPosition;
         private Vector2 shipSpeed = new Vector2(5f, 5f);
@@ -29,6 +35,7 @@ namespace Tutorial
         private Texture2D coinTexture;
         private List<Vector2> coins = new List<Vector2>();
         private double coinSpawnTimer = 0;
+        private float coinFallSpeed = 1.2f; // Adjust for slower/faster fall
 
         private Texture2D asteroidTexture;
         private List<Vector2> asteroids = new List<Vector2>();
@@ -61,6 +68,8 @@ namespace Tutorial
         private const int ShipHeight = 64;
         private const int EnemyWidth = 60;   // Add this
         private const int EnemyHeight = 60;  // Add this
+        private const int CoinWidth = 60;    // Add this
+        private const int CoinHeight = 60;   // Add this
 
         private Menus menus; // Add this field
 
@@ -99,6 +108,11 @@ namespace Tutorial
         // Add for leaderboard back button
         private Rectangle leaderboardBackBox = new Rectangle(20, 20, 48, 48);
 
+        private Animation asteroidBaseAnimation;
+        private List<Animation> asteroidAnimations = new List<Animation>();
+
+        private Animation coinAnimation; // Add this field for coin animation
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -123,11 +137,43 @@ namespace Tutorial
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            background = Content.Load<Texture2D>("Sprites/background");
+
+            // Load background animation frames
+            var bgFrames = new List<Texture2D>();
+            for (int i = 0; i <= 31; i++) // Adjust if you have more/less frames
+            {
+                string path = $"Sprites/background/frame_{i:00}_delay-0.09s";
+                Texture2D frame = null;
+                try
+                {
+                    frame = Content.Load<Texture2D>(path);
+                }
+                catch
+                {
+                    try
+                    {
+                        frame = Content.Load<Texture2D>(path + ".png");
+                    }
+                    catch
+                    {
+                        frame = Content.Load<Texture2D>(path + ".gif");
+                    }
+                }
+                if (frame != null)
+                    bgFrames.Add(frame);
+            }
+            backgroundAnimation = new Animation(bgFrames, 0.09f);
+
             ship = Content.Load<Texture2D>("Sprites/ship");
             enemyTexture = Content.Load<Texture2D>("Sprites/tripod");
             bulletTexture = Content.Load<Texture2D>("Sprites/bullet");
+            
+            // Load coin animation frames
+            // var coinFrames = Animation.LoadFrames(Content, "Sprites/coins/frame", 7);
+            // coinAnimation = new Animation(coinFrames, 0.2f);
+            // coinTexture = coinFrames.Count > 0 ? coinFrames[0] : null; // For hitbox size and spawn logic
             coinTexture = Content.Load<Texture2D>("Sprites/coin");
+
             asteroidTexture = Content.Load<Texture2D>("Sprites/asteroid");
             powerupDoublePointsTexture = Content.Load<Texture2D>("Sprites/doubleup");
             powerupImmortalTexture = Content.Load<Texture2D>("Sprites/immortal");
@@ -148,6 +194,12 @@ namespace Tutorial
             BoldFont = Content.Load<SpriteFont>("Sprites/BoldFont");
             BigBoldFont = Content.Load<SpriteFont>("Sprites/BigFont"); // Assign the big bold font here
             leaderboard.Load(); // Load leaderboard
+
+            // Load asteroid animation frames
+            var asteroidFrames = new List<Texture2D>();
+            asteroidFrames.Add(Content.Load<Texture2D>("Sprites/asteroidgif/frame_0_delay-0.07s"));
+            asteroidFrames.Add(Content.Load<Texture2D>("Sprites/asteroidgif/frame_1_delay-0.07s"));
+            asteroidBaseAnimation = new Animation(asteroidFrames, 0.12f); // 0.12s per frame
         }
 
         protected override void Update(GameTime gameTime)
@@ -417,24 +469,35 @@ namespace Tutorial
 
             // Coin spawn every 3 seconds
             coinSpawnTimer += dt;
-            if (coinSpawnTimer >= 3f)
+            if (coinSpawnTimer >= 2f) // Changed from 3f to 1f for more frequent spawns
             {
                 coinSpawnTimer = 0;
-                int maxX = Window.ClientBounds.Width - coinTexture.Width;
-                int coinX = maxX > 0 ? random.Next(0, maxX) : 0;
-                coins.Add(new Vector2(coinX, -coinTexture.Height));
+                if (coinTexture != null)
+                {
+                    int maxX = Window.ClientBounds.Width - CoinWidth;
+                    int coinX = maxX > 0 ? random.Next(0, maxX) : 0;
+                    coins.Add(new Vector2(coinX, -CoinHeight)); // Spawn at random X, just above the top
+                }
             }
 
-            // Coin collection
+            // Update coins: move down slowly, remove if off screen or collected
             for (int i = coins.Count - 1; i >= 0; i--)
             {
-                coins[i] += new Vector2(0, 1f);
-                Rectangle coinRect = new Rectangle((int)coins[i].X, (int)coins[i].Y, coinTexture.Width, coinTexture.Height);
+                Vector2 pos = coins[i] + new Vector2(0, coinFallSpeed); // Move down
+                Rectangle coinRect = new Rectangle((int)pos.X, (int)pos.Y, CoinWidth, CoinHeight);
                 Rectangle playerRect = new Rectangle((int)shipPosition.X, (int)shipPosition.Y, ShipWidth, ShipHeight);
                 if (coinRect.Intersects(playerRect))
                 {
                     coins.RemoveAt(i);
                     score += doublePoints ? 100 : 50;
+                }
+                else if (pos.Y > Window.ClientBounds.Height)
+                {
+                    coins.RemoveAt(i);
+                }
+                else
+                {
+                    coins[i] = pos;
                 }
             }
 
@@ -443,27 +506,41 @@ namespace Tutorial
             if (asteroidSpawnTimer >= 12f)
             {
                 asteroidSpawnTimer = 0;
-                int maxX = Window.ClientBounds.Width - asteroidTexture.Width;
+                int maxX = Window.ClientBounds.Width - asteroidDrawSize; // Use asteroidDrawSize instead of asteroidTexture.Width
                 int asteroidX = maxX > 0 ? random.Next(0, maxX) : 0;
-                asteroids.Add(new Vector2(asteroidX, -asteroidTexture.Height));
+                asteroids.Add(new Vector2(asteroidX, -asteroidDrawSize)); // Use asteroidDrawSize
+                // Add a new animation instance for this asteroid
+                asteroidAnimations.Add(new Animation(
+                    asteroidBaseAnimation.FrameCount > 0 ? asteroidBaseAnimation.GetType()
+                        .GetField("frames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        .GetValue(asteroidBaseAnimation) as List<Texture2D>
+                        : new List<Texture2D>(), 0.12f));
             }
 
-            // Update asteroids
+            // Update asteroids and their animations
             for (int i = asteroids.Count - 1; i >= 0; i--)
             {
                 asteroids[i] += new Vector2(0, 2f);
-                if (asteroids[i].Y > Window.ClientBounds.Height) 
+                if (i < asteroidAnimations.Count)
+                    asteroidAnimations[i].Update(gameTime);
+
+                if (asteroids[i].Y > Window.ClientBounds.Height)
                 {
                     asteroids.RemoveAt(i);
+                    if (i < asteroidAnimations.Count)
+                        asteroidAnimations.RemoveAt(i);
                     continue;
                 }
                 else
                 {
-                    Rectangle a = new Rectangle((int)asteroids[i].X, (int)asteroids[i].Y, asteroidTexture.Width, asteroidTexture.Height);
+                    // Use asteroidDrawSize for hitbox
+                    Rectangle a = new Rectangle((int)asteroids[i].X, (int)asteroids[i].Y, asteroidDrawSize, asteroidDrawSize);
                     Rectangle p = new Rectangle((int)shipPosition.X, (int)shipPosition.Y, ShipWidth, ShipHeight);
                     if (!immortal && a.Intersects(p))
                     {
                         asteroids.RemoveAt(i);
+                        if (i < asteroidAnimations.Count)
+                            asteroidAnimations.RemoveAt(i);
                         health -= 2; // Asteroid does 2 damage
                         if (health <= 0)
                         {
@@ -489,9 +566,18 @@ namespace Tutorial
                 else if (rand == 1) type = "immortal";
                 else type = "heart";
 
-                int maxX = Window.ClientBounds.Width - coinTexture.Width;
-                int powerupX = maxX > 0 ? random.Next(0, maxX) : 0;
-                powerups.Add(new Tuple<Vector2, string>(new Vector2(powerupX, -coinTexture.Height), type));
+                if (coinTexture == null)
+                {
+                    // Prevent crash if coinTexture is not loaded
+                    // Optionally log a warning here
+                    // Do NOT return from Update, just skip powerup spawn
+                }
+                else
+                {
+                    int maxX = Window.ClientBounds.Width - CoinWidth;
+                    int powerupX = maxX > 0 ? random.Next(0, maxX) : 0;
+                    powerups.Add(new Tuple<Vector2, string>(new Vector2(powerupX, -CoinHeight), type));
+                }
             }
 
             // Update powerups
@@ -507,7 +593,7 @@ namespace Tutorial
                     continue;
                 }
 
-                Rectangle puRect = new Rectangle((int)pos.X, (int)pos.Y, coinTexture.Width, coinTexture.Height);
+                Rectangle puRect = new Rectangle((int)pos.X, (int)pos.Y, CoinWidth, CoinHeight);
                 Rectangle playerRect = new Rectangle((int)shipPosition.X, (int)shipPosition.Y, ShipWidth, ShipHeight);
 
                 if (puRect.Intersects(playerRect))
@@ -545,12 +631,18 @@ namespace Tutorial
             }
             if (immortal)
             {
-                immortalTimer -= dt;
+                immortalTimer -= dt;    
                 if (immortalTimer <= 0)
                 {
                     immortal = false;
                 }
             }
+
+            // Animate background
+            backgroundAnimation?.Update(gameTime);
+
+            // Animate coin
+            coinAnimation?.Update(gameTime);
 
             prevMouseState = mouseState;
             base.Update(gameTime);
@@ -572,10 +664,11 @@ namespace Tutorial
             gameOver = false;
             gameWin = false;
             shipPosition = new Vector2(300, Window.ClientBounds.Height - ShipHeight - 36);
+            asteroidAnimations.Clear();
             SetDifficultyEnemySpeed(); // Ensure speed is set on reset as well
         }
 
-        private int asteroidDrawSize = 64; // Default size
+        private int asteroidDrawSize = 80; // Increased from 64 to 80
 
         private void SetDifficultyEnemySpeed()
         {
@@ -584,19 +677,19 @@ namespace Tutorial
             {
                 case 0: // Easy
                     enemySpeed = new Vector2(0, 0.7f);
-                    asteroidDrawSize = 64;
+                    asteroidDrawSize = 80; // Increased from 64 to 80
                     break;
                 case 1: // Medium
                     enemySpeed = new Vector2(0, 1.2f);
-                    asteroidDrawSize = 64;
+                    asteroidDrawSize = 80; // Increased from 64 to 80
                     break;
                 case 2: // Hard
                     enemySpeed = new Vector2(0, 2.0f);
-                    asteroidDrawSize = 96; // Increase asteroid size in hard mode
+                    asteroidDrawSize = 112; // Increased from 96 to 112
                     break;
                 default:
                     enemySpeed = new Vector2(0, 1f);
-                    asteroidDrawSize = 64;
+                    asteroidDrawSize = 80; // Increased from 64 to 80
                     break;
             }
         }
@@ -606,6 +699,16 @@ namespace Tutorial
             GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
+
+            // Always draw animated background as the first layer
+            if (backgroundAnimation != null && backgroundAnimation.CurrentTexture != null)
+            {
+                spriteBatch.Draw(
+                    backgroundAnimation.CurrentTexture,
+                    new Rectangle(0, 0, Window.ClientBounds.Width, Window.ClientBounds.Height),
+                    Color.White
+                );
+            }
 
             if (lostScreen)
             {
@@ -790,21 +893,25 @@ namespace Tutorial
                 foreach (var bullet in bullets)
                     spriteBatch.Draw(bulletTexture, bullet, Color.White);
 
-                foreach (var coin in coins)
-                    spriteBatch.Draw(coinTexture, coin, Color.White);
+                // Draw coins (no animation, just texture at position)
+                if (coinTexture != null)
+                {
+                    foreach (var coin in coins)
+                    {
+                        Rectangle dest = new Rectangle((int)coin.X, (int)coin.Y, CoinWidth, CoinHeight);
+                        spriteBatch.Draw(coinTexture, dest, Color.White);
+                    }
+                }
 
-                // Draw asteroids scaled to match their hitbox
-                foreach (var asteroid in asteroids)
-                    spriteBatch.Draw(
-                        asteroidTexture,
-                        new Rectangle((int)asteroid.X, (int)asteroid.Y, asteroidDrawSize, asteroidDrawSize),
-                        null,
-                        Color.White,
-                        0f,
-                        Vector2.Zero,
-                        SpriteEffects.None,
-                        0f
-                    );
+                // Draw asteroids with animation
+                for (int i = 0; i < asteroids.Count; i++)
+                {
+                    Rectangle dest = new Rectangle((int)asteroids[i].X, (int)asteroids[i].Y, asteroidDrawSize, asteroidDrawSize);
+                    if (i < asteroidAnimations.Count)
+                        asteroidAnimations[i].Draw(spriteBatch, dest, Color.White);
+                    else
+                        spriteBatch.Draw(asteroidTexture, dest, Color.White);
+                }
 
                 // Draw powerups
                 foreach (var pu in powerups)
@@ -818,14 +925,14 @@ namespace Tutorial
                     {
                         if (pu.Item2 != "heart")
                         {
-                            Rectangle destRect = new Rectangle((int)pu.Item1.X, (int)pu.Item1.Y, coinTexture.Width, coinTexture.Height);
+                            Rectangle destRect = new Rectangle((int)pu.Item1.X, (int)pu.Item1.Y, CoinWidth, CoinHeight);
                             spriteBatch.Draw(tex, destRect, Color.White);
                         }
                         else
                         {
                             Vector2 position = pu.Item1;
-                            int maxWidth = coinTexture.Width;
-                            int maxHeight = coinTexture.Height;
+                            int maxWidth = CoinWidth;
+                            int maxHeight = CoinHeight;
 
                             float scaleX = (float)maxWidth / tex.Width;
                             float scaleY = (float)maxHeight / tex.Height;

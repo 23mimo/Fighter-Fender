@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>c:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/Sprites/asteroid.png</SourceFile>
+  <SourceFile>c:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/Sprites/asteroid.png</SourceFile>
   <SourceTime>2025-05-15T09:15:40+02:00</SourceTime>
-  <DestFile>c:/Users/mikaa/Downloads/RnpVpvn - Copy/Tutorial/Content/bin/DesktopGL/Sprites/asteroid.xnb</DestFile>
-  <DestTime>2025-05-22T22:32:09.7348253+02:00</DestTime>
+  <DestFile>c:/Users/mikaa/Downloads/Fighter Fender/Fighter Fender/Tutorial/Content/bin/DesktopGL/Sprites/asteroid.xnb</DestFile>
+  <DestTime>2025-05-23T19:22:46.953435+02:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T13:44:56+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
